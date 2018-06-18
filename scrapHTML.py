@@ -216,45 +216,33 @@ def findTableTitle(html, index):
 #     for i in range(0,50):
 #         print(html[index-50+i])
 #     print("END")
-      
+#       
     start = index
     textInFont = ""
     while(True):
         tempLine = html[start].strip()
-        """If lines hits end of another table, break."""
-        if((textInFont != "" and "</table" in tempLine) or "page-break" in tempLine):
+        """If lines hits end of another table or a page break, break."""
+        if("</table" in tempLine or "page-break" in tempLine):
             break
         
-        if("<b>" in tempLine or "bold" in tempLine):
-            endTag = Utility.returnEndTag(tempLine)
-            indexT = start + 1
-            temp = html[indexT].strip()
-            while(endTag not in temp):
-                if(temp == ""):
-                    indexT += 1
-                    temp = html[indexT].strip()
-                    continue   
+        if(tempLine == ""):
+            start -= 1
+            continue
+        
+        if(tempLine[0] != "<" and tempLine != ""):
+            textInFont = tempLine + " " + textInFont
                 
-                if(temp[0] == "<"):
-                    indexT += 1
-                    temp = html[indexT].strip()
-                    continue   
-                
-                textInFont += temp + " "
-                indexT += 1
-                if(indexT >= index):
-                    break
-                temp = html[indexT].strip()
-                
-        if(("consolidated" in tempLine.lower() or "consolidated balance" in tempLine.lower())
-           and len(tempLine) < 100):
-            textInFont += tempLine + " "
+#         if(("consolidated" in tempLine.lower() or "consolidated balance" in tempLine.lower())
+#            and len(tempLine) < 100):
+#             textInFont += tempLine + " "
         
         start -= 1
-        """Go back a maximum of 50 lines"""
+        
+        """If it goes back 50 lines, break """
         if(start < index - 50):
             break
-    
+#     print(textInFont)
+
     return textInFont
 
 """Finds "\\x in line, replaces it with a '-' """
@@ -307,17 +295,11 @@ def getAllTables(tickerName, year):
     tempHTML = ""
     """Find all table tags. Everything inside table tags. Ignore all other tags other than <table and </table"""
     for i in range(0, len(html)): 
-#         text = html[i]
-#         if("<b>" in text or "bold" in text):
-#             for j in range(1, 50):
-#                 boldText = html[i + j].lower()
-#                 if("independent" in boldText and "registered" in boldText and "accounting" in boldText):
-#                     print(tickerName + " : " + str(year) + " : " + "TRUE")
-#                     return
         if("<table" in html[i]):
             tempTitle = findTableTitle(html,i).lower()
             if("consolidated" in tempTitle):
                 tempTitle = tempTitle[tempTitle.find("consolidated"):]
+
             continue
   
         if("</table" in html[i]):
@@ -376,7 +358,7 @@ def foundConsolidated(tickerName, date):
     for i in range(0, len(tables)):
         title = titles[i]
         table = tables[i]
-        
+#         print(title)
         """Sometimes title is in first row of table. If "Consolidated" is in, move it to title """
         for j in table:
             row = Utility.combineSingleArray(j)
@@ -386,20 +368,23 @@ def foundConsolidated(tickerName, date):
                 break
             
         title = title.lower().replace(" ", "")
+#         print(title)
         
-        if("consolidatedstatement" in title):
+        if("consolidatedstatement" in title or "statementsofconsolidated" in title or "consolidatedearnings" in title):
             consolidatedStatement = True
             
-        if("consolidatedbalance" in title):
+        if("consolidatedbalance" in title or "statementsofconsolidated" in title):
             consolidatedBalance = True
             
-    if(consolidatedStatement == True and consolidatedBalance == True):
+    if(consolidatedStatement == True or consolidatedBalance == True):
         return True
     return False
 
 
 
+
 # list = ['ALGT', 'AHGP', 'ARLP', 'GOOGL', 'AMWD', 'AMGN', 'ANSS', 'AAPL', 'ATRI', 'OZRK', 'BIIB', 'BOFI', 'CBOE', 'CERN', 'CTSH', 'CPRT', 'CACC', 'DORM', 'EGBN', 'EBIX', 'EXPO', 'FFIV', 'FB', 'FAST', 'FFIN', 'GNTX', 'THRM', 'GILD', 'GBCI', 'HNNA', 'HSIC', 'IDXX', 'ISRG', 'IPGP', 'JBHT', 'JKHY', 'LKFN', 'MANH', 'MKTX', 'EGOV', 'NFBK', 'ODFL', 'ORLY', 'ORIT', 'PRXL', 'PSMT', 'QCOM', 'ROST', 'SEIC', 'SFBS', 'SWKS', 'SYNT', 'TROW', 'TLGT', 'TCBI', 'TXRH', 'CAKE', 'ULTA', 'UTMD', 'WASH', 'WDFC', 'WINA', 'ACN', 'AYI', 'AMP', 'APH', 'AZO', 'CHE', 'CMG', 'CHD', 'CMI', 'DG', 'DPZ', 'DCI', 'FDS', 'GPS', 'GPC', 'HXL', 'HD', 'HRL', 'KNX', 'LCI', 'MMP', 'MMS', 'MCO', 'MSM', 'NEU', 'NKE', 'NUS', 'PII', 'PRLB', 'RHT', 'RMD', 'ROL', 'SBH', 'SNA', 'LUV', 'TJX', 'TMK', 'TYL', 'UVE', 'USNA', 'GWW', 'WDR', 'DIS', 'WAB', 'WLK', 'MMM', 'ABT', 'ABBV', 'ATVI', 'ADBE', 'AAP', 'AFL', 'ALK', 'ALXN', 'MO', 'AMZN', 'AIG', 'ADI', 'AMAT', 'ADSK', 'AVY', 'BCR', 'BAX', 'BBBY', 'BBY', 'HRB', 'BA', 'BMY', 'AVGO', 'CHRW', 'CA', 'CELG', 'CB', 'CINF', 'CTAS', 'CSCO', 'CTXS', 'CLX', 'COH', 'CL', 'COST', 'DLPH', 'DAL', 'DFS', 'DLTR', 'DPS', 'DD', 'DNB', 'EMR', 'EL', 'EXPE', 'EXPD', 'FITB', 'FLIR', 'FL', 'GRMN', 'GD', 'HAS', 'HON', 'HPQ', 'HBAN', 'ITW', 'ILMN', 'INTC', 'IBM', 'IFF', 'INTU', 'JNJ', 'JNPR', 'KEY', 'KMB', 'KLAC', 'LB', 'LRCX', 'LLY', 'LMT', 'LOW', 'LYB', 'MAR', 'MMC', 'MAS', 'MA', 'MAT', 'MCD', 'MCK', 'MJN', 'MRK', 'MTD', 'KORS', 'MCHP', 'MU', 'MSFT', 'MON', 'MNST', 'MSI', 'NTAP', 'NFLX', 'JWN', 'NOC', 'NVDA', 'OMC', 'ORCL', 'PFE', 'PM', 'PPG', 'PFG', 'PGR', 'PSA', 'PHM', 'RTN', 'REGN', 'RAI', 'RHI', 'ROK', 'COL', 'CRM', 'SNI', 'STX', 'SHW', 'SPGI', 'SBUX', 'SYMC', 'TEL', 'TDC', 'TXN', 'HSY', 'TSCO', 'TRIP', 'FOX', 'USB', 'UPS', 'UTX', 'URBN', 'VFC', 'VAR', 'VRSN', 'VRSK', 'VRTX', 'V', 'WMT', 'WAT', 'WDC', 'XLNX', 'YHOO', 'YUM', 'ZTS', 'DISH', 'INCY', 'MXIM', 'SHPG', 'SIRI', 'ABMD', 'ACIW', 'AEIS', 'AMD', 'ALGN', 'ANAT', 'ACGL', 'ARCC', 'ARRS', 'BEAV', 'TECH', 'BLKB', 'BRCD', 'BRKR', 'CDNS', 'CALM', 'CFFN', 'CAVM', 'CBPO', 'CMPR', 'CRUS', 'CGNX', 'COHR', 'CBSH', 'CVLT', 'CBRL', 'CREE', 'CVBF', 'CY', 'DXCM', 'EWBC', 'EFII', 'EXEL', 'FNSR', 'FIVE', 'FTNT', 'LOPE', 'HCSG', 'HOMB', 'HOPE', 'IDTI', 'IDCC', 'ISBC', 'IONS', 'JJSF', 'JACK', 'JAZZ', 'LANC', 'LSTR', 'LGND', 'LECO', 'LOGI', 'LOGM', 'LULU', 'MRVL', 'MASI', 'MDSO', 'MLNX', 'MELI', 'MSTR', 'MPWR', 'MORN', 'FIZZ', 'NATI', 'NTCT', 'NDSN', 'OTEX', 'OPK', 'PZZA', 'PEGA', 'PPC', 'POOL', 'POWI', 'PTC', 'RP', 'RGLD', 'SAFM', 'SANM', 'SGEN', 'SLAB', 'SAVE', 'STMP', 'SHOO', 'SNPS', 'TTWO', 'TFSL', 'PCLN', 'ULTI', 'TRMB', 'UBNT', 'UCBI', 'UTHR', 'OLED', 'WWD', 'ALX', 'AEO', 'NLY', 'AHL', 'AGO', 'ALV', 'BOH', 'BKU', 'BIG', 'BAH', 'EAT', 'BR', 'BC', 'BWXT', 'BXMT', 'CRI', 'CIM', 'CHH', 'CIEN', 'CNX', 'CLB', 'DRI', 'DLX', 'DKS', 'DLB', 'DRQ', 'ELLI', 'EPAM', 'EQM', 'EVR', 'RE', 'FICO', 'FII', 'FIG', 'FSIC', 'GME', 'IT', 'GMED', 'GGG', 'GWRE', 'HLF', 'ITT', 'JBT', 'KKR', 'LVS', 'LAZ', 'LCII', 'LEA', 'LII', 'MFA', 'MTG', 'MSA', 'MSCI', 'NRZ', 'ORI', 'PRA', 'Q', 'RDN', 'RYN', 'RGA', 'RNR', 'RLI', 'AOS', 'STWD', 'SNV', 'DATA', 'TEN', 'TER', 'TNH', 'TPL', 'THO', 'TTC', 'TUP', 'VC', 'VMW', 'GRA', 'WBC', 'WBS', 'WAL', 'WTM', 'WSM', 'YELP', 'NVR', 'TREX']
+# list = ["AAPL"]
 # for i in list:
 #     for j in range(2010, 2018):
 #         getAllTables(i, str(j))

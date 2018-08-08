@@ -1,3 +1,5 @@
+
+
 import time
 
 """--------------------------------------------------------------------------------------------------------------------------------------
@@ -36,10 +38,15 @@ Utility float
 
 -----------------------------------------------------------------------------------'''
 def myFloat(input):
+    try:
+        input = input.replace(",","")
+    except:
+        pass
     if(input == ''  or input == ' '):
         return 0 
     else:
         return float(input)
+
 
 '''-----------------------------------------------------------------------------------
 
@@ -296,6 +303,25 @@ def titleMatch(title , titleMatch):
             return True
         
     return False
+
+"""---------------------------------------------------------------------------
+Sees if two numbers are close. Within 5% of each other
+---------------------------------------------------------------------------"""
+def numbersClose(num1, num2):
+    if(num1 * .95 < num2 and num2 < num1 *1.05):
+        return True
+    elif(num2 *.95 < num1 and num1 < num2 *1.05):
+        return True
+    else: 
+        return False
+
+
+
+
+
+
+
+
 
 
 

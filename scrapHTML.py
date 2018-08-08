@@ -10,19 +10,19 @@ def htmlTable(html, rowTagInput, columnTagInput):
 
     row = ""
     table = []
-    title = ""
     for i in html.splitlines():
+        """rowTag is usually <tr>. Add everything between <tr> and </tr> into "row" variable """
         if(rowTag in i):
-            title = row
             row = ""
             continue
         
-        """Found end of row. Now get each cell by going through columns """
+        """Found end of row </tr>. Now get each cell by going through columns """
         if(endTag in i):
             rowArray = []
             tempCell = []
             blank = 0
             for j in row.splitlines():
+                """Find <td>. If colspan= exists, take number to see how wide column is."""
                 if(columnTag in j):
                     subString = 'colspan="'
                     if(subString in j):
@@ -31,20 +31,22 @@ def htmlTable(html, rowTagInput, columnTagInput):
                         blank = int(payload.split('"')[0]) - 1
                     continue
                 
+                """Found end of cell </td>.  """
                 if(j == columnEnd):
+                    for blankAdd in range(0,blank):
+                        rowArray.append("")
+                    blank = 0
                     joinedCells = ""
                     for k in tempCell:
                         joinedCells +=k + " "
                     rowArray.append(joinedCells)
-                    for i in range(0,blank):
-                        rowArray.append("")
-                    blank = 0
 
                     tempCell = []
                     continue
 
                 tempCell.append(j)
-            """Reset row for outer loop """   
+
+            """Reset row. Add rowArray to table array """
             row = ""
             table.append(rowArray)
             continue
@@ -55,30 +57,12 @@ def htmlTable(html, rowTagInput, columnTagInput):
     for i in table:
         for j in range(0,len(i)):
             i[j] = Utility.deleteAllTags(i[j]).strip().replace("$", "") 
-
-        
-    """Delete if row is empty or filled with empty strings"""
-    i = 0
-    while(i < len(table)):
-        if(len(table[i]) < 1): 
-            del table[i]
-            continue
-              
-        row = table[i]
-        empty = True
-        for j in row:
-            if(j.strip() != ""):
-                empty = False
-                 
-        if(empty == True):
-            del table[i]
-            i -= 1  
-        i += 1
                 
     """If there is a problem with first two rows, fix it. EX 
     row 1: cell, cell, ......
     row 2:     ,     , cell , cell                           Merges into one row"""
     if(len(table) > 2):
+        """Make table[0] and table[1] the same length. """
         if(len(table[0]) > len(table[1])):
             endOfFirst = len(table[0]) - len(table[1])
             allEmpty = True
@@ -90,10 +74,6 @@ def htmlTable(html, rowTagInput, columnTagInput):
             if(allEmpty == True):
                 for i in range(0, endOfFirst):
                     table[1].insert(0,"")
-
-#     for i in table:
-#         print(len(i))
-#         print(i)
     
     """Make all table the same length """
     longestLength = 0
@@ -104,11 +84,11 @@ def htmlTable(html, rowTagInput, columnTagInput):
     for i in table:
         while(len(i) < longestLength):
             i.append("")
-    
+            
     if(len(table) < 1):
         return
 
-    """ If it has %, ), comma [,] , or $, join right or left """ 
+    """ If it has %, ), comma [,] , join right or left """ 
     for row in table:
         columnIndex = 0 
         while(columnIndex < len(row)):
@@ -123,10 +103,6 @@ def htmlTable(html, rowTagInput, columnTagInput):
                 row[tempIndex] = row[tempIndex].strip() + row[columnIndex].strip()
                 row[columnIndex] = ""
                 
-            if(row[columnIndex].strip() == "$"):
-                row[columnIndex] = row[columnIndex].strip() + row[columnIndex+1].strip()
-                row[columnIndex + 1] = ""
-           
             columnIndex += 1
             
     """Delete empty columns """
@@ -166,8 +142,10 @@ def htmlTable(html, rowTagInput, columnTagInput):
         new.append(row)
      
     table = new
+
+    if(len(table) < 1):
+        return
             
-    
     """If column is spit into two, merge to one. 
     etc:
     x
@@ -202,8 +180,7 @@ def htmlTable(html, rowTagInput, columnTagInput):
         for j in range(0, len(table[i])):
             table[i][j] = Utility.removeExtraSpaces(table[i][j])
             
-
-#     Utility.makeTable(table)   
+#     Utility.makeTable(table)
 #     for i in table:
 #         print(len(i))
 #         print(i)
@@ -222,7 +199,7 @@ def findTableTitle(html, index):
     while(True):
         tempLine = html[start].strip()
         """If lines hits end of another table or a page break, break."""
-        if("</table" in tempLine or "page-break" in tempLine):
+        if("</table" in tempLine):
             break
         
         if(tempLine == ""):
@@ -370,7 +347,8 @@ def foundConsolidated(tickerName, date):
         title = title.lower().replace(" ", "")
 #         print(title)
         
-        if("consolidatedstatement" in title or "statementsofconsolidated" in title or "consolidatedearnings" in title):
+        if("consolidatedstatement" in title or "statementsofconsolidated" in title or "consolidatedearnings" in title 
+           or "comprehensiveincome" in title or "incomestatements" in title):
             consolidatedStatement = True
             
         if("consolidatedbalance" in title or "statementsofconsolidated" in title):
@@ -384,9 +362,9 @@ def foundConsolidated(tickerName, date):
 
 
 # list = ['ALGT', 'AHGP', 'ARLP', 'GOOGL', 'AMWD', 'AMGN', 'ANSS', 'AAPL', 'ATRI', 'OZRK', 'BIIB', 'BOFI', 'CBOE', 'CERN', 'CTSH', 'CPRT', 'CACC', 'DORM', 'EGBN', 'EBIX', 'EXPO', 'FFIV', 'FB', 'FAST', 'FFIN', 'GNTX', 'THRM', 'GILD', 'GBCI', 'HNNA', 'HSIC', 'IDXX', 'ISRG', 'IPGP', 'JBHT', 'JKHY', 'LKFN', 'MANH', 'MKTX', 'EGOV', 'NFBK', 'ODFL', 'ORLY', 'ORIT', 'PRXL', 'PSMT', 'QCOM', 'ROST', 'SEIC', 'SFBS', 'SWKS', 'SYNT', 'TROW', 'TLGT', 'TCBI', 'TXRH', 'CAKE', 'ULTA', 'UTMD', 'WASH', 'WDFC', 'WINA', 'ACN', 'AYI', 'AMP', 'APH', 'AZO', 'CHE', 'CMG', 'CHD', 'CMI', 'DG', 'DPZ', 'DCI', 'FDS', 'GPS', 'GPC', 'HXL', 'HD', 'HRL', 'KNX', 'LCI', 'MMP', 'MMS', 'MCO', 'MSM', 'NEU', 'NKE', 'NUS', 'PII', 'PRLB', 'RHT', 'RMD', 'ROL', 'SBH', 'SNA', 'LUV', 'TJX', 'TMK', 'TYL', 'UVE', 'USNA', 'GWW', 'WDR', 'DIS', 'WAB', 'WLK', 'MMM', 'ABT', 'ABBV', 'ATVI', 'ADBE', 'AAP', 'AFL', 'ALK', 'ALXN', 'MO', 'AMZN', 'AIG', 'ADI', 'AMAT', 'ADSK', 'AVY', 'BCR', 'BAX', 'BBBY', 'BBY', 'HRB', 'BA', 'BMY', 'AVGO', 'CHRW', 'CA', 'CELG', 'CB', 'CINF', 'CTAS', 'CSCO', 'CTXS', 'CLX', 'COH', 'CL', 'COST', 'DLPH', 'DAL', 'DFS', 'DLTR', 'DPS', 'DD', 'DNB', 'EMR', 'EL', 'EXPE', 'EXPD', 'FITB', 'FLIR', 'FL', 'GRMN', 'GD', 'HAS', 'HON', 'HPQ', 'HBAN', 'ITW', 'ILMN', 'INTC', 'IBM', 'IFF', 'INTU', 'JNJ', 'JNPR', 'KEY', 'KMB', 'KLAC', 'LB', 'LRCX', 'LLY', 'LMT', 'LOW', 'LYB', 'MAR', 'MMC', 'MAS', 'MA', 'MAT', 'MCD', 'MCK', 'MJN', 'MRK', 'MTD', 'KORS', 'MCHP', 'MU', 'MSFT', 'MON', 'MNST', 'MSI', 'NTAP', 'NFLX', 'JWN', 'NOC', 'NVDA', 'OMC', 'ORCL', 'PFE', 'PM', 'PPG', 'PFG', 'PGR', 'PSA', 'PHM', 'RTN', 'REGN', 'RAI', 'RHI', 'ROK', 'COL', 'CRM', 'SNI', 'STX', 'SHW', 'SPGI', 'SBUX', 'SYMC', 'TEL', 'TDC', 'TXN', 'HSY', 'TSCO', 'TRIP', 'FOX', 'USB', 'UPS', 'UTX', 'URBN', 'VFC', 'VAR', 'VRSN', 'VRSK', 'VRTX', 'V', 'WMT', 'WAT', 'WDC', 'XLNX', 'YHOO', 'YUM', 'ZTS', 'DISH', 'INCY', 'MXIM', 'SHPG', 'SIRI', 'ABMD', 'ACIW', 'AEIS', 'AMD', 'ALGN', 'ANAT', 'ACGL', 'ARCC', 'ARRS', 'BEAV', 'TECH', 'BLKB', 'BRCD', 'BRKR', 'CDNS', 'CALM', 'CFFN', 'CAVM', 'CBPO', 'CMPR', 'CRUS', 'CGNX', 'COHR', 'CBSH', 'CVLT', 'CBRL', 'CREE', 'CVBF', 'CY', 'DXCM', 'EWBC', 'EFII', 'EXEL', 'FNSR', 'FIVE', 'FTNT', 'LOPE', 'HCSG', 'HOMB', 'HOPE', 'IDTI', 'IDCC', 'ISBC', 'IONS', 'JJSF', 'JACK', 'JAZZ', 'LANC', 'LSTR', 'LGND', 'LECO', 'LOGI', 'LOGM', 'LULU', 'MRVL', 'MASI', 'MDSO', 'MLNX', 'MELI', 'MSTR', 'MPWR', 'MORN', 'FIZZ', 'NATI', 'NTCT', 'NDSN', 'OTEX', 'OPK', 'PZZA', 'PEGA', 'PPC', 'POOL', 'POWI', 'PTC', 'RP', 'RGLD', 'SAFM', 'SANM', 'SGEN', 'SLAB', 'SAVE', 'STMP', 'SHOO', 'SNPS', 'TTWO', 'TFSL', 'PCLN', 'ULTI', 'TRMB', 'UBNT', 'UCBI', 'UTHR', 'OLED', 'WWD', 'ALX', 'AEO', 'NLY', 'AHL', 'AGO', 'ALV', 'BOH', 'BKU', 'BIG', 'BAH', 'EAT', 'BR', 'BC', 'BWXT', 'BXMT', 'CRI', 'CIM', 'CHH', 'CIEN', 'CNX', 'CLB', 'DRI', 'DLX', 'DKS', 'DLB', 'DRQ', 'ELLI', 'EPAM', 'EQM', 'EVR', 'RE', 'FICO', 'FII', 'FIG', 'FSIC', 'GME', 'IT', 'GMED', 'GGG', 'GWRE', 'HLF', 'ITT', 'JBT', 'KKR', 'LVS', 'LAZ', 'LCII', 'LEA', 'LII', 'MFA', 'MTG', 'MSA', 'MSCI', 'NRZ', 'ORI', 'PRA', 'Q', 'RDN', 'RYN', 'RGA', 'RNR', 'RLI', 'AOS', 'STWD', 'SNV', 'DATA', 'TEN', 'TER', 'TNH', 'TPL', 'THO', 'TTC', 'TUP', 'VC', 'VMW', 'GRA', 'WBC', 'WBS', 'WAL', 'WTM', 'WSM', 'YELP', 'NVR', 'TREX']
-# list = ["AAPL"]
+# list = ["LNTH"]
 # for i in list:
-#     for j in range(2010, 2018):
+#     for j in range(2012, 2013):
 #         getAllTables(i, str(j))
 
 

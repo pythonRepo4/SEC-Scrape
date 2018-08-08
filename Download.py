@@ -118,34 +118,34 @@ def documentList(tickerName, date):
      """
     tableWithLinks = Utility.returnInTags(tempWebFile, "results") 
     tableArray = htmlTable(tableWithLinks, "filing")
-       
+        
     """Got link to 10ks, now get link to actual 10k and then download """
     preDirectory = str(os.getcwd()) + "\\" 
     directory = preDirectory + "html-files\\"
     date10k = ""
     fileName = ""
-     
+      
     for i in tableArray:
 #         print(i)
         if(i[-1] == "10-K/A"):
             continue
         link10k = ""
-  
+   
         for j in i:            
             """Link to 10-k documents has substring "/www.sec.gov/Archives". Works as of 17 Apr 2018 """
             if("/www.sec.gov/Archives" in j):
                 link10k = j
                 break   
-            
+             
         if(link10k == ""):
             continue
-                        
+                         
         """link10k has link to 10k of specific year. The 10k is broken into further html links which will
         all be downloaded the combined into 1 html."""
         tempWebFile = request.urlopen(link10k).read().decode('utf-8')
         tableWithLinks = Utility.returnInTags(tempWebFile, "table")
         tableArrayWithLinks = htmlTable(tableWithLinks, "tr")
-              
+               
         date = ""
         payload = ">Period of Report"
         """Period of Report (date)"""
@@ -161,7 +161,7 @@ def documentList(tickerName, date):
             date = year - 1
         else:
             date = year
-                  
+                   
         """10K is broken into many different links. At this point put them all into one html """
         for j in tableArrayWithLinks:
 #             print(j)
@@ -173,8 +173,9 @@ def documentList(tickerName, date):
 #                     print(temp_url)          
                     fileName = directory + tickerName + "-10k-" + str(date) + ".html"
                     joinHTML(fileName, temp_url)
-                      
+              
             if(scrapHTML.foundConsolidated(tickerName, str(date)) == True):
+#                 print("True")
                 break
 
-documentList("BA", "2018")
+
